@@ -1,0 +1,48 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'java'
+    id 'application'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java'
+apply plugin: 'application'
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+project.ext.lwjglVersion = "3.2.3"
+project.ext.jomlVersion = "1.10.1"
+
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.5.21'
+
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}"
+
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}:natives-windows"
+
+    implementation "org.joml:joml:${jomlVersion}"
+}
+
+shadowJar {
+    archiveFileName = "${project.name}.jar"
+    manifest {
+        attributes 'Main-Class': 'game/GameKt'
+    }
+}
+
+application {
+    mainClassName("game/GameKt")
+}
