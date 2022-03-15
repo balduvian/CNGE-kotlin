@@ -1,77 +1,48 @@
 package com.balduvian.cnge.graphics
 
-import java.awt.SystemColor.window
-
-
-abstract class Loop {
-	data class Props(val exit: Boolean, val skipWait: Boolean, val fps: Int)
-
-	abstract fun getProps(): Props
-
-	abstract fun doFrame(timing: Timing)
-
-	private fun loop() {
+class Loop(private val window: Window, val doFrame: (timing: Timing) -> Unit) {
+	fun loop() {
 		var last = System.nanoTime()
+
+		/* only used when waiting a specified amount of time (no vsync) */
 		var next = last
 
-		while (true) {
-			val (exit, skipWait, fps) = getProps()
-			if (exit) return
+		while (!window.shouldClose()) {
+			val skipWait = window.vsync
 
-			//if (!skipWait) {
-			//	Thread.sleep(
-			//		(((next - System.nanoTime()) / 1000000) - 1).coerceAtLeast(0)
-			//	)
-			//	while (System.nanoTime() < next) {}
-			//}
+			/* if waiting, wait until the next time */
+			if (!skipWait) {
+				Thread.sleep(
+					(((next - System.nanoTime()) / 1000000L) - 1L).coerceAtLeast(0L)
+				)
+				while (System.nanoTime() < next) { /* useless computation */ 32+34+2+23+2+342+324+342 }
+			}
 
+			/* reference point for the current frame */
 			val now = System.nanoTime()
-			val delta = now - last
-			last = now
 
-			//if (!skipWait) {
-			//	next = if (delta > Timing.BILLION) {
-			//		now + Timing.BILLION / fps
-			//	} else {
-			//		last + Timing.BILLION / fps
-			//	}
-			//}
+			val (delta, newLast) = if (skipWait) {
+				/* exactly how much time has passed since last frame, determined by vsync */
+				(now - last) to now
+			} else {
+				val fps = window.refreshRate()
 
-			doFrame(Timing(0, delta, 1.0 / fps))
+				/* if real time has passed a full second ahead of the internal timer, */
+				next = if (now - last > Timing.BILLION) {
+					now + Timing.BILLION / fps.toLong()
+				} else {
+					last + (Timing.BILLION * 2) / fps.toLong()
+				}
+
+				/* determined by the fixed framerate */
+				(Timing.BILLION / fps) to (last + Timing.BILLION)
+			}
+
+			last = newLast
+
+			doFrame(Timing(delta))
 		}
+
+		window.terminate()
 	}
-
-	private fun slabLoop() {
-		var frames = 0
-		var curTime: Long
-		var pastTime: Long
-		var pastSec: Long = 0
-		pastTime = System.nanoTime()
-
-		do {
-			val (exit, skipWait, fps) = getProps()
-			val nspf: Long = 1000000000L / fps
-			var dtime: Double
-			curTime = System.nanoTime()
-			if (curTime - pastTime > nspf) {
-				var adtime = nspf / 1000000000.0
-
-				doFrame(Timing(fps, curTime - pastTime, adtime))
-
-				pastTime += nspf
-				++frames
-			}
-			if (curTime - pastSec > 1000000000) {
-				frames = 0
-				pastSec += 1000000000
-			}
-			if (nspf - curTime + pastTime > 10000000) try {
-				Thread.sleep(1)
-			} catch (e: Exception) {
-				e.printStackTrace()
-			}
-		} while (!exit)
-	}
-
-	init { loop() }
 }

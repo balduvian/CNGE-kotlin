@@ -20,7 +20,7 @@ class Input {
 		return keys[key] > RELEASED
 	}
 
-	fun keypressed(key: Int): Boolean {
+	fun keyPressed(key: Int): Boolean {
 		return keys[key] == PRESSED
 	}
 

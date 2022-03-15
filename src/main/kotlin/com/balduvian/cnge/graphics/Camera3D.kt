@@ -4,7 +4,8 @@ import org.joml.Matrix4f
 
 class Camera3D {
 	val projection = Matrix4f()
-	val projectionView = Matrix4f()
+	val view = Matrix4f()
+	val projView = Matrix4f()
 
 	var fov = 0.0f
 		private set
@@ -29,9 +30,11 @@ class Camera3D {
 	}
 
 	fun update() {
-		projectionView.rotationXYZ(-rotationX, -rotationY, -rotationZ)
-			.translate(-x, -y, -z)
-		projection.mul(projectionView, projectionView)
+		projection.mul(view.rotationXYZ(-rotationX, -rotationY, -rotationZ).translate(-x, -y, -z), projView)
+	}
+
+	fun updateLookAt(eyeX: Float, eyeY: Float, eyeZ: Float, centerX: Float, centerY: Float, centerZ: Float, upX: Float, upY: Float, upZ: Float) {
+		projection.mul(view.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ), projView)
 	}
 
 	companion object {

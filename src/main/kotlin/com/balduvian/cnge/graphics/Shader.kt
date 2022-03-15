@@ -1,5 +1,6 @@
 package com.balduvian.cnge.graphics
 
+import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL46.*
 
@@ -7,6 +8,7 @@ class Shader(
 	val program: Int,
 	val projViewLocation: Int,
 	val modelLocation: Int,
+	val normalMatrixLocation: Int,
 	val pvmLocation: Int,
 	val locations: Array<Int>
 ) : GraphicsObject() {
@@ -14,14 +16,16 @@ class Shader(
 		const val MODEL_NAME = "model"
 		const val PROJVIEW_NAME = "projView"
 		const val PVM_NAME = "pvm"
+		const val NORMALMATRIX_NAME = "normalMatrix"
 
 		val matrixValues = FloatArray(16)
+		val vm = Matrix4f()
 		val pvm = Matrix4f()
+		val normalMatrix = Matrix3f()
 
 		fun create(
 			vertexData: String,
 			fragmentData: String,
-			geometryData: String?,
 			vararg uniforms: String,
 		): Option<Shader> {
 			val program = glCreateProgram()
@@ -40,14 +44,6 @@ class Shader(
 				is Bad -> return option.forward()
 			}
 
-			val geometryShader = if (geometryData != null) when (
-				val option = createShader(geometryData, GL_GEOMETRY_SHADER)
-			) {
-				is Good -> option.value
-				is Bad -> return option.forward()
-			} else null
-
-			if (geometryShader != null) glAttachShader(program, geometryShader)
 			glAttachShader(program, vertexShader)
 			glAttachShader(program, fragmentShader)
 
@@ -56,16 +52,15 @@ class Shader(
 				return Bad(glGetProgramInfoLog(program))
 			}
 
-			if (geometryShader != null) glDetachShader(program, geometryShader)
 			glDetachShader(program, vertexShader)
 			glDetachShader(program, fragmentShader)
 
-			if (geometryShader != null) glDeleteShader(geometryShader)
 			glDeleteShader(vertexShader)
 			glDeleteShader(fragmentShader)
 
 			val modelLocation = glGetUniformLocation(program, MODEL_NAME)
 			val projViewLocation = glGetUniformLocation(program, PROJVIEW_NAME)
+			val normalMatrixLocation = glGetUniformLocation(program, NORMALMATRIX_NAME)
 
 			val pvmLocation = glGetUniformLocation(program, PVM_NAME)
 			if (pvmLocation == -1) return Bad("No uniform for \"${PVM_NAME}\" was found")
@@ -77,7 +72,7 @@ class Shader(
 				if (locations[i] == -1) return Bad("Uniform ${uniforms[i]} was not found")
 			}
 
-			return Good(Shader(program, modelLocation, projViewLocation, pvmLocation, locations))
+			return Good(Shader(program, projViewLocation, modelLocation, normalMatrixLocation, pvmLocation, locations))
 		}
 
 		private fun createShader(data: String, type: Int): Option<Int> {
@@ -119,7 +114,13 @@ class Shader(
 			glUniformMatrix4fv(modelLocation, false, model.get(matrixValues))
 		}
 
-		glUniformMatrix4fv(pvmLocation, false, projectionView.mul(model, pvm).get(matrixValues))
+		projectionView.mul(model, pvm).get(matrixValues)
+
+		if (normalMatrixLocation != -1) {
+			glUniformMatrix3fv(normalMatrixLocation, false, model.normal(normalMatrix).get(matrixValues))
+		}
+
+		glUniformMatrix4fv(pvmLocation, false, pvm.get(matrixValues))
 	}
 
 	override fun destroy() {

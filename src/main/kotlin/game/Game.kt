@@ -1,24 +1,24 @@
 package game
 
 import com.balduvian.cnge.graphics.Loop
-import com.balduvian.cnge.graphics.Timing
 import com.balduvian.cnge.graphics.Window
+import javax.imageio.ImageIO
 
 fun main() {
 	if (!Window.init(::println)) return println("GLFW failed to initialize")
 
-	val window = Window.create(4, 6, true, true, "CNGE Test", false, true)
+	val window = Window.create(4, 6, true, true, "CNGE Demo", false, true)
 		?: return println("Window failed to initialize")
+
+	window.setIconSingle(
+		Window::class.java.getResource("/textures/CNGE-logo.png") ?: return println("Icon missing"),
+	)
 
 	val sceneManager = GameSceneManager()
 
-	object : Loop() {
-		override fun getProps(): Props {
-			return Props(window.shouldClose(), true, window.refreshRate())
-		}
-
-		override fun doFrame(timing: Timing) {
-			sceneManager.update(window, timing)
-		}
+	val loop = Loop(window) { timing ->
+		sceneManager.update(window, timing)
 	}
+
+	loop.loop()
 }

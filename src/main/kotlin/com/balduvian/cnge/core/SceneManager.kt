@@ -38,11 +38,11 @@ abstract class SceneManager(var nextSceneId: Int) {
 
 		val scene = currentScene
 		if (scene != null) {
+			scene.update(window.input, timing)
+
 			if (window.input.didResize) {
 				scene.onResize(window.width, window.height)
 			}
-
-			scene.update(window.input, timing)
 
 			scene.render()
 

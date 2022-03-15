@@ -12,17 +12,9 @@ class GameSceneManager : SceneManager(SCENE_GAME) {
 	}
 	override fun getResources(sceneId: Int): Array<Resource<*>> {
 		return arrayOf(
-			GameResources.colorShader,
-			GameResources.textureShader,
-			GameResources.tileShader,
-			GameResources.vhsShader,
-			GameResources.eyeTexture,
-			GameResources.tileTexture,
 			GameResources.rect,
-			GameResources.frameRect,
-			GameResources.lineRect,
-			GameResources.hatKidTexture,
-			GameResources.dynTri,
+			GameResources.textureShader,
+			GameResources.fontTiles,
 		)
 	}
 
