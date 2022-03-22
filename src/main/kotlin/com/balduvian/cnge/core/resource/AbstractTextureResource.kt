@@ -3,8 +3,7 @@ package com.balduvian.cnge.core.resource
 import com.balduvian.cnge.core.Resource
 import com.balduvian.cnge.graphics.*
 import org.lwjgl.BufferUtils
-import java.awt.image.BufferedImage
-import java.lang.Exception
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
@@ -14,57 +13,31 @@ abstract class AbstractTextureResource<T: Texture>(
 ) : Resource<T>() {
 	var texture: T? = null
 
-	var pixels: ByteBuffer = BufferUtils.createByteBuffer(0)
+	var pixels: ByteBuffer? = null
 	var width: Int = 0
 	var height: Int = 0
 
-	override fun internalAsyncLoad(): String? {
+	override fun internalAsyncLoad() {
 		val imageStream = Window::class.java.getResource(filepath)
-			?.openStream() ?: return "Texture resource $filepath could not be found"
+			?.openStream() ?: throw Exception("Texture resource $filepath could not be found")
 
-		return try {
-			val image = ImageIO.read(imageStream)
-			width = image.width
-			height = image.height
-			pixels = bytesFromImage(image)
+		val image = ImageIO.read(imageStream)
 
-			null
-
-		} catch (ex: Exception) {
-			ex.message
-		}
+		width = image.width
+		height = image.height
+		pixels = Images.imageToByteBuffer(image)
 	}
 
-	override fun internalSyncLoad(): Option<T> {
-		return textureOption()
+	override fun internalSyncLoad(): T {
+		return textureOption(pixels!!)
 	}
 
 	override fun cleanup() {
-		pixels = BufferUtils.createByteBuffer(0)
+		MemoryUtil.memFree(pixels)
+		pixels = null
 		width = 0
 		height = 0
 	}
 
-	abstract fun textureOption() : Option<T>
-
-	companion object {
-		fun bytesFromImage(image: BufferedImage): ByteBuffer {
-			val pixels = image.getRGB(0, 0, image.width, image.height, null, 0, image.width)
-
-			val size = image.width * image.height
-
-			val ret = BufferUtils.createByteBuffer(size * 4)
-
-			for (i in 0 until size) {
-				ret.put(pixels[i].ushr(16).toByte()) /* R */
-				ret.put(pixels[i].ushr( 8).toByte()) /* G */
-				ret.put(pixels[i]         .toByte()) /* B */
-				ret.put(pixels[i].ushr(24).toByte()) /* A */
-			}
-
-			ret.flip()
-
-			return ret
-		}
-	}
+	abstract fun textureOption(pixels: ByteBuffer) : T
 }

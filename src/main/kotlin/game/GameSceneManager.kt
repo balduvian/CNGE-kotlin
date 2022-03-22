@@ -12,6 +12,7 @@ class GameSceneManager : SceneManager(SCENE_GAME) {
 	}
 	override fun getResources(sceneId: Int): Array<Resource<*>> {
 		return arrayOf(
+			GameResources.noiseTestShader,
 			GameResources.rect,
 			GameResources.textureShader,
 			GameResources.fontTiles,

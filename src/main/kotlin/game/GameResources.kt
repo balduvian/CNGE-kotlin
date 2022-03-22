@@ -20,6 +20,12 @@ object GameResources {
 		"color",
 	)
 
+	val noiseTestShader = ShaderResource(
+		"/shaders/noiseTest/vert.glsl",
+		"/shaders/noiseTest/frag.glsl",
+		"color"
+	)
+
 	val rect = VAOResource(
 		GL_TRIANGLES,
 		intArrayOf(0, 1, 2, 2, 3, 0),

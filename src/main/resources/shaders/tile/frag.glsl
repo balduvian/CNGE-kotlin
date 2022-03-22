@@ -1,5 +1,3 @@
-#version 460 core
-
 uniform sampler2D sampler;
 uniform vec4 color;
 

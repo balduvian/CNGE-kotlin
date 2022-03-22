@@ -1,7 +1,6 @@
 package com.balduvian.cnge.core.resource
 
 import com.balduvian.cnge.core.Resource
-import com.balduvian.cnge.graphics.Option
 import com.balduvian.cnge.graphics.Shader
 
 class ShaderResource(
@@ -12,17 +11,19 @@ class ShaderResource(
 	var vertData: String = ""
 	var fragData: String = ""
 
-	override fun internalAsyncLoad(): String? {
-		vertData = this::class.java.getResource(vertFilepath)?.readText()
-			?: return "Resource $vertFilepath does not exist"
+	override fun internalAsyncLoad() {
+		vertData = Shader.processSource(
+			this::class.java.getResource(vertFilepath)?.readText()
+			?: throw Exception("Resource $vertFilepath does not exist")
+		)
 
-		fragData = this::class.java.getResource(fragFilepath)?.readText()
-			?: return "Resource $fragFilepath does not exist"
-
-		return null
+		fragData = Shader.processSource(
+			this::class.java.getResource(fragFilepath)?.readText()
+			?: throw Exception("Resource $fragFilepath does not exist")
+		)
 	}
 
-	override fun internalSyncLoad(): Option<Shader> {
+	override fun internalSyncLoad(): Shader {
 		return Shader.create(vertData, fragData, *uniforms)
 	}
 

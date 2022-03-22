@@ -1,5 +1,8 @@
 package com.balduvian.cnge.core.util
 
+import com.balduvian.cnge.graphics.Shader
+import org.lwjgl.opengl.GL46
+
 class Color(
 	val r: Float,
 	val g: Float,
@@ -24,6 +27,16 @@ class Color(
 				g / 255.0f,
 				b / 255.0f,
 			)
+		}
+
+		fun Shader.uniformColor(index: Int, color: Color): Shader {
+			GL46.glUniform4f(locations[index], color.r, color.g, color.b, 1.0f)
+			return this
+		}
+
+		fun Shader.uniformColor(index: Int, color: Color, alpha: Float): Shader {
+			GL46.glUniform4f(locations[index], color.r, color.g, color.b, alpha)
+			return this
 		}
 	}
 }

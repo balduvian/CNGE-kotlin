@@ -1,5 +1,3 @@
-#version 460 core
-
 uniform vec3 color0;
 uniform vec3 color1;
 uniform vec3 color2;

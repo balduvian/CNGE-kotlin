@@ -1,7 +1,5 @@
 package com.balduvian.cnge.core
 
-import com.balduvian.cnge.graphics.Bad
-import com.balduvian.cnge.graphics.Good
 import com.balduvian.cnge.graphics.Timing
 import com.balduvian.cnge.graphics.Window
 
@@ -26,13 +24,13 @@ abstract class SceneManager(var nextSceneId: Int) {
 		if (loading) {
 			resourceLoader.update()
 
-			when (val option = resourceLoader.result) {
-				is Good -> if (option.value) {
-					loading = false
-					previousResources = resourceLoader.loads
-					currentScene = createScene(window, nextSceneId)
-				}
-				is Bad -> throw Exception(option.value)
+			if (resourceLoader.done()) {
+				val error = resourceLoader.error
+				if (error != null) throw Exception(error)
+
+				loading = false
+				previousResources = resourceLoader.loads
+				currentScene = createScene(window, nextSceneId)
 			}
 		}
 

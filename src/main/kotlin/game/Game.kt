@@ -10,7 +10,7 @@ fun main() {
 	val window = Window.create(4, 6, true, true, "CNGE Demo", false, true)
 		?: return println("Window failed to initialize")
 
-	window.setIconSingle(
+	window.setIcon(
 		Window::class.java.getResource("/textures/CNGE-logo.png") ?: return println("Icon missing"),
 	)
 

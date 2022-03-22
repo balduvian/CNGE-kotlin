@@ -1,15 +1,12 @@
 package com.balduvian.cnge.graphics
 
-import game.main
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.opengl.GL.createCapabilities
-import java.awt.geom.AffineTransform
+import org.lwjgl.system.MemoryUtil
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import java.net.URI
 import java.net.URL
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
@@ -163,67 +160,36 @@ class Window(
 		glfwSetWindowIcon(window, null)
 	}
 
-	fun setIconSingle(resource: URL) {
-		val icon = GLFWImage.create(1)
+	fun setIcon(resource: URL) {
+		val bufferedImage = ImageIO.read(resource)
+		val buffer = Images.imageToByteBuffer(bufferedImage)
 
-		val image = ImageIO.read(resource)
+		glfwSetWindowIcon(
+			window,
+			GLFWImage.create(1).put(0, GLFWImage.create().set(bufferedImage.width, bufferedImage.height, buffer))
+		)
 
-		val byteBuffer = ByteBuffer.allocate(image.width * image.height * 4)
-
-		val pixels = IntArray(image.width * image.height)
-		image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
-
-		for (b in 0 until image.width * image.height) {
-			byteBuffer.put(pixels[b].shr(16).toByte() /* r */)
-			byteBuffer.put(pixels[b].shr( 8).toByte() /* g */)
-			byteBuffer.put(pixels[b]        .toByte() /* b */)
-			byteBuffer.put(pixels[b].shr(24).toByte() /* a */)
-		}
-
-		byteBuffer.flip()
-		val glfwImage = GLFWImage.create().set(image.width, image.height, byteBuffer)
-
-		icon.put(0, glfwImage)
-		icon.flip()
-
-		glfwSetWindowIcon(window, icon)
+		MemoryUtil.memFree(buffer)
 	}
 
-	fun setIcon(resource: URL, vararg sizes: Int) {
-		val mainImage = ImageIO.read(resource)
+	fun setIconMulti(vararg resources: URL) {
+		val iconSet = GLFWImage.create(resources.size)
 
-		val iconSet = GLFWImage.create(sizes.size)
-		val byteBuffers = Array(sizes.size) { i ->
-			ByteBuffer.allocate(sizes[i] * sizes[i] * 4)
-		}
-		val glfwImages = Array(sizes.size) { i ->
-			GLFWImage.create()
-		}
+		val byteBuffers = resources.map { resource ->
+			val bufferImage = ImageIO.read(resource)
+			val byteBuffer = Images.imageToByteBuffer(bufferImage)
 
-		for (i in sizes.indices) {
-			val size = sizes[i]
-			val byteBuffer = byteBuffers[i]
+			iconSet.put(GLFWImage.create().set(bufferImage.width, bufferImage.height, byteBuffer))
 
-			val scaledImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
-			val graphics = scaledImage.createGraphics()
-			graphics.drawImage(mainImage, 0, 0, size, size, 0, 0, mainImage.width, mainImage.height, null)
-
-			val pixels = IntArray(size * size)
-			scaledImage.getRGB(0, 0, size, size, pixels, 0, size)
-
-			for (b in 0 until size * size) {
-				byteBuffer.put(pixels[b].shr(16).toByte() /* r */)
-				byteBuffer.put(pixels[b].shr( 8).toByte() /* g */)
-				byteBuffer.put(pixels[b]        .toByte() /* b */)
-				byteBuffer.put(pixels[b].shr(24).toByte() /* a */)
-			}
-
-			byteBuffer.flip()
-			iconSet.put(glfwImages[i].set(size, size, byteBuffer))
+			byteBuffer
 		}
 
 		iconSet.flip()
 		glfwSetWindowIcon(window, iconSet)
+
+		byteBuffers.forEach{ byteBuffer ->
+			MemoryUtil.memFree(byteBuffer)
+		}
 	}
 
 	fun shouldClose(): Boolean {

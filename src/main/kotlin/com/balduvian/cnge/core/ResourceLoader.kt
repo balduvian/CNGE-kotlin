@@ -1,9 +1,5 @@
 package com.balduvian.cnge.core
 
-import com.balduvian.cnge.graphics.Bad
-import com.balduvian.cnge.graphics.Good
-import com.balduvian.cnge.graphics.Option
-
 class ResourceLoader {
 	private var thread: Thread? = null
 	private var threadDone: Boolean = false
@@ -11,7 +7,7 @@ class ResourceLoader {
 	private var unloads: List<Resource<*>> = ArrayList()
 	var loads: Array<Resource<*>> = emptyArray()
 
-	var result: Option<Boolean> = Good(false)
+	var error: Exception? = null
 	var along: Float = 0.0f
 
 	fun start(unloads: Array<Resource<*>>, loads: Array<Resource<*>>) {
@@ -19,7 +15,7 @@ class ResourceLoader {
 		this.loads = loads
 
 		threadDone = false
-		result = Good(false)
+		error = null
 		along = 0.0f
 
 		var count = 0
@@ -27,14 +23,14 @@ class ResourceLoader {
 		val thread = Thread {
 			for (resource in loads) {
 				if (resource.state === Resource.State.UNLOADED) {
-					val error = resource.asyncLoad()
+					try {
+						resource.asyncLoad()
+						along = ++count / loads.size.toFloat()
 
-					if (error != null) {
-						result = Bad(error)
+					} catch (ex: Exception) {
+						error = infoError(resource, ex)
 						break
 					}
-
-					along = ++count / loads.size.toFloat()
 				}
 			}
 
@@ -57,31 +53,41 @@ class ResourceLoader {
 
 		for (resource in loads) {
 			if (resource.state === Resource.State.WAITING) {
-				val error = resource.syncLoad()
-
-				if (error != null) {
-					result = Bad(error)
+				try {
+					resource.syncLoad()
+				} catch (ex: Exception) {
+					error = infoError(resource, ex)
 					break
 				}
-
 			} else if (resource.state === Resource.State.UNLOADED) {
 				hasUnloaded = true
 			}
 		}
 
-		if (threadDone && result !is Bad && !hasUnloaded) {
+		if (error != null || (threadDone && !hasUnloaded)) {
 			thread?.join()
 			this.thread = null
-			result = Good(true)
 		}
 	}
 
+	fun done(): Boolean {
+		return thread == null
+	}
+
 	companion object {
+		fun infoError(resource: Resource<*>, ex: Exception): Exception {
+			return Exception("While loading $resource | ${ex.message ?: "Unknown error"}")
+		}
+
 		fun blocking(loads: Array<Resource<*>>) {
-			loads.forEach { resource ->
+			for (resource in loads) {
 				if (resource.state === Resource.State.UNLOADED) {
-					val error = resource.asyncLoad() ?: resource.syncLoad()
-					if (error != null) throw Exception(error)
+					try {
+						resource.asyncLoad()
+						resource.syncLoad()
+					} catch (ex: Exception) {
+						throw infoError(resource, ex)
+					}
 				}
 			}
 		}

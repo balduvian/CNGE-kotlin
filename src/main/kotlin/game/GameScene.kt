@@ -1,31 +1,26 @@
 package game
 
 import com.balduvian.cnge.core.Scene
-import com.balduvian.cnge.core.util.Timer
+import com.balduvian.cnge.core.util.Color
+import com.balduvian.cnge.core.util.Color.Companion.uniformColor
 import com.balduvian.cnge.core.util.frame.AspectFrame
 import com.balduvian.cnge.graphics.*
-import com.balduvian.cnge.core.util.Font
-import com.balduvian.cnge.core.util.Util
-import org.joml.Math.sin
-import org.joml.Vector3f
-import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL46.*
-import kotlin.math.PI
-import kotlin.random.Random
-import kotlin.system.exitProcess
 
 class GameScene(window: Window) : Scene(window) {
 	val aspect = AspectFrame(16.0f / 9.0f)
+	val camera = Camera().setOrtho(160f, 90f)
 
-	val hudCamera = Camera().setOrtho(160f, 90f)
+	val color = Color.hex(0xeb4310)
 
-	var cameraX = 0.0f
-	var cameraY = 0.0f
-	var cameraZ = 0.0f
+	init {
+		glEnable(GL_BLEND)
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	}
 
 	override fun update(input: Input, timing: Timing) {
-		hudCamera.update()
+		camera.update()
 
 		if (input.keyPressed(GLFW_KEY_ESCAPE)) {
 			window.setShouldClose()
@@ -39,6 +34,15 @@ class GameScene(window: Window) : Scene(window) {
 	override fun render() {
 		glClearColor(0f, 0f, 1f, 1f)
 		glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
+
+		GameResources.noiseTestShader.get()
+			.enableModel(
+				camera.projectionView,
+				Camera.transform(5.0f, 5.0f, 50.0f, 50.0f)
+			)
+			.uniformColor(0, color)
+
+		GameResources.rect.get().render()
 	}
 
 	override fun onResize(width: Int, height: Int) {

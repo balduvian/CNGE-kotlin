@@ -1,8 +1,6 @@
 package com.balduvian.cnge.core.resource
 
 import com.balduvian.cnge.core.Resource
-import com.balduvian.cnge.graphics.Good
-import com.balduvian.cnge.graphics.Option
 import com.balduvian.cnge.graphics.VAO
 
 class VAOResource(
@@ -10,16 +8,14 @@ class VAOResource(
 	val indices: IntArray,
 	val attributes: Array<VAO.Attribute>
 ) : Resource<VAO>() {
-	override fun internalAsyncLoad(): String? {
-		return null
-	}
+	override fun internalAsyncLoad() {}
 
-	override fun internalSyncLoad(): Option<VAO> {
-		return Good(VAO.create(
+	override fun internalSyncLoad(): VAO {
+		return VAO.create(
 			drawMode,
 			indices,
 			attributes
-		))
+		)
 	}
 
 	override fun cleanup() {}
