@@ -5,10 +5,12 @@ class Timer {
 	var goal = 0.0
 	var going = false
 
-	fun start(goal: Double) {
+	fun start(goal: Double): Timer {
 		this.goal = goal
 		this.going = true
 		this.timer = 0.0
+
+		return this
 	}
 
 	fun restart() {

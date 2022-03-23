@@ -45,6 +45,18 @@ object GameResources {
 		)
 	)
 
+	val rightTriangle = VAOResource(
+		GL_TRIANGLES,
+		intArrayOf(0, 1, 2),
+		arrayOf(
+			VAO.StaticAttribute(2, floatArrayOf(
+				-0.5f, 0.5f,
+				0.5f, -0.5f,
+				-0.5f, -0.5f,
+			))
+		)
+	)
+
 	val fontTiles = TileTextureResource(
 		"/textures/font.png",
 		TextureParams().filter(GL_NEAREST).wrap(GL_CLAMP_TO_BORDER),

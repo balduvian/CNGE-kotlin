@@ -87,10 +87,10 @@ class Camera {
 
 		fun transformCenter(centerX: Float, centerY: Float, x: Float, y: Float, width: Float, height: Float, rotation: Float): Matrix4f {
 			return transform
-				.translation(x, y, 0.0f)
+				.translation(x + centerX * width, y + centerY * height, 0.0f)
 				.rotate(rotation, 0.0f, 0.0f, 1.0f)
 				.scale(width, height, 1.0f)
-				.translate(-centerX / width, -centerY / height, 0.0f)
+				.translate(-centerX, -centerY, 0.0f)
 		}
 
 		val defaultModel = Matrix4f()

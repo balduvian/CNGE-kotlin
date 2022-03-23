@@ -8,10 +8,11 @@ import com.balduvian.cnge.graphics.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL46.*
 
-class GameScene(window: Window) : Scene(window) {
+class GameScene(val window: Window) : Scene() {
 	val aspect = AspectFrame(16.0f / 9.0f)
 	val camera = Camera().setOrtho(160f, 90f)
 
+	val backgroundColor = Color.hex(0xdb4237)
 	val color = Color.hex(0xeb4310)
 
 	init {
@@ -21,19 +22,12 @@ class GameScene(window: Window) : Scene(window) {
 
 	override fun update(input: Input, timing: Timing) {
 		camera.update()
-
-		if (input.keyPressed(GLFW_KEY_ESCAPE)) {
-			window.setShouldClose()
-		}
-
-		if (input.keyPressed(GLFW_KEY_F11)) {
-			window.setFullScreen(!window.full, true)
-		}
 	}
 
 	override fun render() {
-		glClearColor(0f, 0f, 1f, 1f)
-		glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
+		GameResources.colorShader.get().enable(Camera.defaultProjView, Camera.defaultModel)
+			.uniformColor(0, backgroundColor)
+		GameResources.rect.get().render()
 
 		GameResources.noiseTestShader.get()
 			.enableModel(
@@ -45,12 +39,7 @@ class GameScene(window: Window) : Scene(window) {
 		GameResources.rect.get().render()
 	}
 
-	override fun onResize(width: Int, height: Int) {
-		val (x, y, w, h) = aspect.getBounds(width, height)
-		glViewport(x, y, w, h)
-	}
+	override fun onResize(x: Int, y: Int, width: Int, height: Int) {
 
-	override fun switchScene(): Int? {
-		return null
 	}
 }

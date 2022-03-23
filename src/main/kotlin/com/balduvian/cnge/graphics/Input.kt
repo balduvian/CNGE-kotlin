@@ -9,7 +9,7 @@ class Input {
 		const val HELD = 2.toByte()
 	}
 
-	var didResize = false
+	var didResize = true
 	val keys = ByteArray(GLFW_KEY_LAST)
 	val buttons = ByteArray(GLFW_MOUSE_BUTTON_LAST)
 	var mouseX = 0.0f

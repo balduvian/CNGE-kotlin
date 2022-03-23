@@ -1,40 +1,67 @@
 package com.balduvian.cnge.core
 
+import java.util.*
+import java.util.concurrent.locks.ReentrantLock
+
 class ResourceLoader {
-	private var thread: Thread? = null
-	private var threadDone: Boolean = false
+	private val thread: Thread
 
-	private var unloads: List<Resource<*>> = ArrayList()
-	var loads: Array<Resource<*>> = emptyArray()
+	private val unloadStack: Stack<Resource<*>> = Stack()
+	private val asyncLoadStack: Stack<Resource<*>> = Stack()
+	private val syncLoadStack: Stack<Resource<*>> = Stack()
 
-	var error: Exception? = null
-	var along: Float = 0.0f
+	private val stackLock = ReentrantLock()
 
-	fun start(unloads: Array<Resource<*>>, loads: Array<Resource<*>>) {
-		this.unloads = unloads.filter { unload -> loads.none { it === unload } }
-		this.loads = loads
+	fun stake(resources: Array<Resource<*>>) {
+		synchronized(stackLock) {
+			/* make sure to now not unload any of these if they were going to be */
+			unloadStack.removeAll(resources.toSet())
 
-		threadDone = false
-		error = null
-		along = 0.0f
+			/* don't load anything already loaded , or already being loaded */
+			asyncLoadStack.addAll(resources.filter { resource ->
+				val wasNotAlreadyLoaded = resource.state === Resource.State.UNLOADED
+				resource.increaseStake()
+				wasNotAlreadyLoaded
+			})
+		}
 
-		var count = 0
+		/* tell the thread it's time to start loading again */
+		thread.interrupt()
+	}
 
+	fun unstake(resources: Array<Resource<*>>) {
+		synchronized(stackLock) {
+			/* decrease stake in all of these resources */
+			unloadStack.addAll(resources.filter { resource ->
+				resource.reduceStake() == 0 &&
+				resource.state !== Resource.State.UNLOADED
+			})
+		}
+	}
+
+	init {
 		val thread = Thread {
-			for (resource in loads) {
-				if (resource.state === Resource.State.UNLOADED) {
+			while (true) {
+				val resource = synchronized(stackLock) {
+					 if (asyncLoadStack.isEmpty()) null else asyncLoadStack.pop()
+				}
+
+				if (resource != null) {
 					try {
 						resource.asyncLoad()
-						along = ++count / loads.size.toFloat()
 
+						synchronized(stackLock) {
+							syncLoadStack.push(resource)
+						}
 					} catch (ex: Exception) {
-						error = infoError(resource, ex)
-						break
+						resource.error(infoError(resource, ex))
 					}
+				} else {
+					try {
+						Thread.sleep(1000)
+					} catch (_: InterruptedException) {}
 				}
 			}
-
-			threadDone = true
 		}
 
 		thread.start()
@@ -45,33 +72,41 @@ class ResourceLoader {
 	fun update() {
 		var hasUnloaded = false
 
-		unloads.forEach { resource ->
-			if (resource.state === Resource.State.LOADED) {
-				resource.destroy()
-			}
+		/* unload one resource per call */
+		if (unloadStack.isNotEmpty()) {
+			val unloadResource = unloadStack.pop()
+			unloadResource.destroy()
 		}
 
-		for (resource in loads) {
-			if (resource.state === Resource.State.WAITING) {
-				try {
-					resource.syncLoad()
-				} catch (ex: Exception) {
-					error = infoError(resource, ex)
-					break
-				}
-			} else if (resource.state === Resource.State.UNLOADED) {
-				hasUnloaded = true
+		stackLock.lock()
+		while (syncLoadStack.isNotEmpty()) {
+			val loadresource = syncLoadStack.pop()
+
+			try {
+				loadresource.syncLoad()
+			} catch (ex: Exception) {
+				loadresource.error(infoError(loadresource, ex))
 			}
 		}
-
-		if (error != null || (threadDone && !hasUnloaded)) {
-			thread?.join()
-			this.thread = null
-		}
+		stackLock.unlock()
 	}
 
-	fun done(): Boolean {
-		return thread == null
+	fun kill() {
+		thread.join()
+	}
+
+	fun blocking(loads: Array<Resource<*>>) {
+		for (resource in loads) {
+			resource.increaseStake()
+			if (resource.state === Resource.State.UNLOADED) {
+				try {
+					resource.asyncLoad()
+					resource.syncLoad()
+				} catch (ex: Exception) {
+					throw infoError(resource, ex)
+				}
+			}
+		}
 	}
 
 	companion object {
@@ -79,17 +114,24 @@ class ResourceLoader {
 			return Exception("While loading $resource | ${ex.message ?: "Unknown error"}")
 		}
 
-		fun blocking(loads: Array<Resource<*>>) {
-			for (resource in loads) {
-				if (resource.state === Resource.State.UNLOADED) {
-					try {
-						resource.asyncLoad()
-						resource.syncLoad()
-					} catch (ex: Exception) {
-						throw infoError(resource, ex)
-					}
+		fun getAlong(resources: Array<Resource<*>>): Float {
+			var value = 0
+
+			for (resource in resources) {
+				value += when (resource.state) {
+					Resource.State.UNLOADED -> 0
+					Resource.State.STAGED -> 1
+					Resource.State.WAITING -> 2
+					Resource.State.LOADED -> 3
+					Resource.State.ERROR -> 3
 				}
 			}
+
+			return value.toFloat() / (resources.size * 3.0f)
+		}
+
+		fun getDone(resources: Array<Resource<*>>): Pair<Boolean, List<Exception>> {
+			return resources.all { it.state === Resource.State.LOADED } to resources.mapNotNull { it.getError() }
 		}
 	}
 }
