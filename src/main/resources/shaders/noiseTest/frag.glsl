@@ -1,4 +1,4 @@
-#include /shaders/noise.glsl
+#include </shaders/noise.glsl>
 
 uniform vec4 color;
 

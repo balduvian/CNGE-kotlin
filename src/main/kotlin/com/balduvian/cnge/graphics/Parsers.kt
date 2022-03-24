@@ -19,23 +19,25 @@ object Parsers {
 
 		var i = 0
 		while (i < input.length) {
-			var current = input[i]
-
 			if (goodOnLine && lineIndex == pattern.length) {
 				val dataPart = readRestOfLine(input, i)
 				ret.add(ParsedLine(lineStartIndex, i + dataPart.length, dataPart))
 
 				i += dataPart.length
-				current = input[i]
 			}
 
-			if (current == '\n') {
+			if (input[i] == '\r') {
+				if (i + 1 == input.length) return ret
+				if(input[i + 1] == '\n') ++i
+			}
+
+			if (input[i] == '\n') {
 				lineStartIndex = i + 1
 				lineIndex = 0
 				goodOnLine = true
 
 			} else if (goodOnLine && lineIndex < pattern.length) {
-				if (current != pattern[lineIndex]) goodOnLine = false
+				if (input[i] != pattern[lineIndex]) goodOnLine = false
 				++lineIndex
 			}
 
@@ -52,11 +54,42 @@ object Parsers {
 			val current = input[i]
 			if (current == '\n') {
 				return builder.toString()
-			} else {
+
+			/* ignore weird newline */
+			} else if (current != '\r') {
 				builder.append(current)
 			}
 		}
 
 		return builder.toString()
+	}
+
+	/**
+	 * @return null if no < > was found
+	 */
+	fun parseInAngleBrackets(input: String): String? {
+		/* start looking for opening bracket */
+		for (i in input.indices) {
+			if (input[i] == '<') {
+				val builder = StringBuilder(input.length - i)
+
+				/* look for end bracket, copy data inside */
+				for (j in i + 1 until input.length) {
+					val current = input[j]
+
+					if (current == '>') {
+						return builder.toString()
+					} else {
+						builder.append(current)
+					}
+				}
+
+				/* no closing bracket found */
+				return null
+			}
+		}
+
+		/* no opening bracket found */
+		return null
 	}
 }

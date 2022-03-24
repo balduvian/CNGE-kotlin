@@ -69,21 +69,22 @@ class Shader(
 		}
 
 		fun processSource(source: String): String {
-			val newlinesSource = source.filter { it != '\r' }
-
-			if (Parsers.findLinesStartingWith(newlinesSource, "#version ").isNotEmpty())
+			if (Parsers.findLinesStartingWith(source, "#version ").isNotEmpty())
 				throw Exception("Please do not specify shader version")
 
-			val includes = Parsers.findLinesStartingWith(newlinesSource, "#include ")
+			val includes = Parsers.findLinesStartingWith(source, "#include ")
 
-			val includeSources = includes.map { (startIndex, endIndex, resourceURL) ->
-				 includeCache[resourceURL] ?:
+			val includeSources = includes.map { (startIndex, endIndex, restOfLine) ->
+				val resourceURL = Parsers.parseInAngleBrackets(restOfLine)
+					?: throw Exception("No < > brackets found in #include statement")
+
+				includeCache[resourceURL] ?:
 					this::class.java.getResource(resourceURL)?.readText()
 					?: throw Exception("Could not find include for \"${resourceURL}\"")
 			}
 
 			return if (includes.isEmpty()) {
-				"#version $VERSION\n$newlinesSource"
+				"#version $VERSION\n$source"
 
 			} else {
 				val builder = StringBuilder()
@@ -91,10 +92,8 @@ class Shader(
 
 				for (i in includes.indices) {
 					/* append the part before this include */
-					builder.append(newlinesSource.substring(
-						(if (i == 0) 0 else includes[i - 1].endIndex)
-							until
-							includes[i].startIndex
+					builder.append(source.substring(
+						(if (i == 0) 0 else includes[i - 1].endIndex) until includes[i].startIndex
 					))
 
 					/* append the include source */
@@ -102,7 +101,7 @@ class Shader(
 				}
 
 				/* append the part after the last include */
-				builder.append(newlinesSource.substring(includes.last().endIndex until newlinesSource.length))
+				builder.append(source.substring(includes.last().endIndex until source.length))
 				builder.toString()
 			}
 		}
