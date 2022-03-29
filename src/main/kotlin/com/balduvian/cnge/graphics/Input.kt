@@ -1,8 +1,9 @@
 package com.balduvian.cnge.graphics;
 
+import com.balduvian.cnge.core.util.Frame
 import org.lwjgl.glfw.GLFW.*
 
-class Input {
+class Input(var frame: Frame) {
 	companion object {
 		const val RELEASED = 0.toByte()
 		const val PRESSED = 1.toByte()
@@ -15,6 +16,7 @@ class Input {
 	var mouseX = 0.0f
 	var mouseY = 0.0f
 	var mouseScroll = 0
+	var bounds = Frame.Bounds(0, 0, 0, 0)
 
 	fun keyHeld(key: Int): Boolean {
 		return keys[key] > RELEASED

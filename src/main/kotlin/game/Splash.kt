@@ -3,6 +3,7 @@ package game
 import com.balduvian.cnge.core.Scene
 import com.balduvian.cnge.core.util.Color
 import com.balduvian.cnge.core.util.Color.Companion.uniformColor
+import com.balduvian.cnge.core.util.Frame
 import com.balduvian.cnge.core.util.Timer
 import com.balduvian.cnge.core.util.Util
 import com.balduvian.cnge.core.util.Util.sinAlong
@@ -10,9 +11,10 @@ import com.balduvian.cnge.graphics.Camera
 import com.balduvian.cnge.graphics.Input
 import com.balduvian.cnge.graphics.Timing
 import com.balduvian.cnge.graphics.Window
+import org.lwjgl.glfw.GLFW.GLFW_KEY_Q
 import kotlin.math.PI
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
 class Splash(val window: Window) : Scene() {
 	val timer = Timer().start(8.0)
@@ -23,6 +25,8 @@ class Splash(val window: Window) : Scene() {
 
 	val logoColor = Color.hex(0x000000)
 	val backgroundColor = Color.hex(0xffffff)
+
+	val font = GameFont(Color.hex(0x000000))
 
 	/*
 	 * base form:
@@ -48,17 +52,27 @@ class Splash(val window: Window) : Scene() {
 		0, 0, 3, 2
 	)
 
+	val baseString = "made with cnge"
+
+	var rotateAlong = 0.0f
+	var fadeAlong = 0.0f
+
 	override fun update(input: Input, timing: Timing) {
 		camera.update()
+
+		/* skip splash screen */
+		if (input.keyPressed(GLFW_KEY_Q)) {
+			timer.forceFinish()
+		}
+
 		timer.update(timing.time)
+		val elapsed = timer.timer.toFloat()
+
+		rotateAlong = Util.invInterp(1.0f, 3.0f, elapsed).coerceIn(0.0f..1.0f).sinAlong()
+		fadeAlong = Util.invInterp(6.0f, 8.0f, elapsed).coerceIn(0.0f..1.0f).sinAlong()
 	}
 
 	override fun render() {
-		val elapsed = timer.timer.toFloat()
-
-		val rotateAlong = Util.invInterp(1.0f, 3.0f, elapsed).coerceIn(0.0f..1.0f).sinAlong()
-		val fadeAlong = Util.invInterp(6.0f, 8.0f, elapsed).coerceIn(0.0f..1.0f).sinAlong()
-
 		GameResources.colorShader.get().enable(Camera.defaultProjView, Camera.defaultModel)
 			.uniformColor(0, backgroundColor, 1.0f - fadeAlong)
 		GameResources.rect.get().render()
@@ -89,13 +103,21 @@ class Splash(val window: Window) : Scene() {
 				GameResources.rightTriangle.get().render()
 			}
 		}
+
+		font.alpha = 1.0f - fadeAlong
+		val stringSection = baseString.substring(0 until (baseString.length * rotateAlong).roundToInt())
+		font.renderString(camera, stringSection, 80.0f, 10.0f, 4.0f / 8.0f, 5.0f, true)
 	}
 
-	override fun onResize(x: Int, y: Int, width: Int, height: Int) {
+	override fun onResize(bounds: Frame.Bounds) {
 
 	}
 
 	fun splashDone(): Boolean {
 		return timer.along() >= 1.0f
+	}
+
+	fun actionable(): Boolean {
+		return fadeAlong > 0.0f
 	}
 }

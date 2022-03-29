@@ -11,13 +11,13 @@ import org.lwjgl.opengl.GL11.*
 
 class Game() {
 	val window: Window
-	val aspect = AspectFrame(16.0f / 9.0f)
+	val aspectFrame = AspectFrame(16.0f / 9.0f)
 	val loader = ResourceLoader()
 
 	init {
 		if (!Window.init(::println)) throw Exception("GLFW failed to initialize")
 
-		window = Window.create(4, 6, true, true, "CNGE Demo", false, true)
+		window = Window.create(4, 6, true, true, "CNGE Demo", false, true, aspectFrame)
 			?: throw Exception("Window failed to initialize")
 
 		window.setIcon(
@@ -30,6 +30,8 @@ class Game() {
 		GameResources.rightTriangle,
 		GameResources.rect,
 		GameResources.colorShader,
+		GameResources.tileShader,
+		GameResources.fontTiles,
 	), null) { Splash(window) }
 
 	val gameSceneHolder = SceneHolder(arrayOf(
@@ -41,12 +43,16 @@ class Game() {
 	var stage = 0
 
 	init {
+		splashHolder.syncLoad(loader)
+
+		glEnable(GL_BLEND)
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 		Loop(window) { timing -> doLoop(window, timing) }.loop()
 	}
 
-	fun doLoop(window: Window, timing: Timing) {
-		window.poll()
-		val input = window.input
+	private fun doLoop(window: Window, timing: Timing) {
+		val input = window.poll()
 
 		if (input.keyPressed(GLFW.GLFW_KEY_ESCAPE)) {
 			window.setShouldClose()
@@ -56,19 +62,17 @@ class Game() {
 			window.setFullScreen(!window.full, true)
 		}
 
-		if (input.didResize) {
-			val (x, y, w, h) = aspect.getBounds(window.width, window.height)
-			glViewport(x, y, w, h)
-			splashHolder.scene?.onResize(x, y, w, h)
-		}
-
 		loader.update()
 
 		/* update */
 		when (stage) {
 			0 -> {
 				splashHolder.update(input, timing, loader)
-				gameSceneHolder.update(input, timing, loader)
+				if (splashHolder.scene?.actionable() != true) {
+					gameSceneHolder.updateLoadOnly(loader)
+				} else {
+					gameSceneHolder.update(input, timing, loader)
+				}
 
 				if (splashHolder.scene?.splashDone() == true) {
 					splashHolder.unload(loader)
@@ -78,7 +82,6 @@ class Game() {
 			1 -> {
 				gameSceneHolder.update(input, timing, loader)
 			}
-			else -> {}
 		}
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -93,7 +96,6 @@ class Game() {
 			1 -> {
 				gameSceneHolder.render()
 			}
-			else -> {}
 		}
 
 		window.postFrame()

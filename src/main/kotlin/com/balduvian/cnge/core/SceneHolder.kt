@@ -11,7 +11,10 @@ class SceneHolder<T : Scene>(
 	var scene: T? = null
 	var loading: Boolean = false
 
-	fun update(input: Input, timing: Timing, resourceLoader: ResourceLoader) {
+	/**
+	 * @return the loading is done
+	 */
+	fun updateLoadOnly(resourceLoader: ResourceLoader): Boolean {
 		if (!loading) {
 			resourceLoader.stake(resources)
 			loading = true
@@ -23,13 +26,25 @@ class SceneHolder<T : Scene>(
 				throw errors.first()
 			}
 
-			if (done) {
-				scene = create()
-				//scene?.onResize()
-			}
+			return done
 		}
 
-		scene?.update(input, timing)
+		return false
+	}
+
+	fun update(input: Input, timing: Timing, resourceLoader: ResourceLoader) {
+		var doResize = input.didResize
+
+		if (updateLoadOnly(resourceLoader)) {
+			doResize = true
+			scene = create()
+		}
+
+		val scene = scene
+		if (scene != null) {
+			if (doResize) scene.onResize(input.bounds)
+			scene.update(input, timing)
+		}
 	}
 
 	fun render() {
@@ -45,5 +60,9 @@ class SceneHolder<T : Scene>(
 	fun unload(resourceLoader: ResourceLoader) {
 		loading = false
 		resourceLoader.unstake(resources)
+	}
+
+	fun syncLoad(resourceLoader: ResourceLoader) {
+		resourceLoader.blocking(resources)
 	}
 }

@@ -62,4 +62,8 @@ class Timer {
 		if (timer < 0.0) timer = 0.0
 		if (timer > goal) timer = goal
 	}
+
+	fun forceFinish() {
+		timer = goal
+	}
 }

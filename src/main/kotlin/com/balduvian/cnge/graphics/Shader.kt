@@ -203,6 +203,10 @@ class Shader(
 		glUniform4f(locations[index], values[0], values[1], values[2], values[3])
 		return this
 	}
+	fun uniformVector4(index: Int, values: FloatArray): Shader {
+		glUniform4f(locations[index], values[0], values[1], values[2], values[3])
+		return this
+	}
 	fun uniformVector2Array(index: Int, values: FloatArray): Shader {
 		glUniform2fv(locations[index], values)
 		return this

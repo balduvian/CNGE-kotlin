@@ -3,6 +3,7 @@ package game
 import com.balduvian.cnge.core.Scene
 import com.balduvian.cnge.core.util.Color
 import com.balduvian.cnge.core.util.Color.Companion.uniformColor
+import com.balduvian.cnge.core.util.Frame
 import com.balduvian.cnge.core.util.frame.AspectFrame
 import com.balduvian.cnge.graphics.*
 import org.lwjgl.glfw.GLFW.*
@@ -14,11 +15,6 @@ class GameScene(val window: Window) : Scene() {
 
 	val backgroundColor = Color.hex(0xdb4237)
 	val color = Color.hex(0xeb4310)
-
-	init {
-		glEnable(GL_BLEND)
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	}
 
 	override fun update(input: Input, timing: Timing) {
 		camera.update()
@@ -39,7 +35,7 @@ class GameScene(val window: Window) : Scene() {
 		GameResources.rect.get().render()
 	}
 
-	override fun onResize(x: Int, y: Int, width: Int, height: Int) {
+	override fun onResize(bounds: Frame.Bounds) {
 
 	}
 }

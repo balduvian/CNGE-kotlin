@@ -98,7 +98,7 @@ class ResourceLoader {
 	fun blocking(loads: Array<Resource<*>>) {
 		for (resource in loads) {
 			resource.increaseStake()
-			if (resource.state === Resource.State.UNLOADED) {
+			if (resource.state === Resource.State.STAGED) {
 				try {
 					resource.asyncLoad()
 					resource.syncLoad()

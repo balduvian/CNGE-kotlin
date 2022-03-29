@@ -63,4 +63,10 @@ object GameResources {
 		16,
 		8
 	)
+
+	val tileShader = ShaderResource(
+		"/shaders/tile/vert.glsl",
+		"/shaders/tile/frag.glsl",
+		"tile", "color"
+	)
 }

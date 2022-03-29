@@ -1,5 +1,6 @@
 package com.balduvian.cnge.graphics
 
+import com.balduvian.cnge.core.util.Frame
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
@@ -18,6 +19,7 @@ class Window(
 	var width: Int,
 	var height: Int,
 	var full: Boolean,
+	var frame: Frame,
 ) {
 	companion object {
 		fun init(onError: (String) -> Unit): Boolean {
@@ -35,7 +37,8 @@ class Window(
 			decorated: Boolean,
 			title: String,
 			full: Boolean,
-			vsync: Boolean
+			vsync: Boolean,
+			frame: Frame
 		): Window? {
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion)
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion)
@@ -67,16 +70,18 @@ class Window(
 
 			glfwSwapInterval(if (vsync) 1 else 0)
 
-			return Window(videoMode, window, vsync, width, height, full)
+			return Window(videoMode, window, vsync, width, height, full, frame)
 		}
 	}
 
-	val input = Input()
+	val input = Input(frame)
 
 	private fun onSizeChanged(window: Long, newWidth: Int, newHeight: Int) {
 		this.width = newWidth
 		this.height = newHeight
 		input.didResize = true
+		input.bounds = input.frame.getBounds(width, height)
+		input.bounds.setViewport()
 	}
 
 	init {
@@ -106,8 +111,9 @@ class Window(
 
 	/* internal CNGE interface, do not call these */
 
-	fun poll() {
+	fun poll(): Input {
 		glfwPollEvents()
+		return input
 	}
 
 	fun postFrame() {
