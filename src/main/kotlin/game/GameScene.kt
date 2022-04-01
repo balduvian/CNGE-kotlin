@@ -16,8 +16,15 @@ class GameScene(val window: Window) : Scene() {
 	val backgroundColor = Color.hex(0xdb4237)
 	val color = Color.hex(0xeb4310)
 
+	val level = Level()
+	val player = Player(2.0f, 1.0f)
+
 	override fun update(input: Input, timing: Timing) {
+		camera.scaleX = 8f
+		camera.scaleY = 8f
 		camera.update()
+
+		player.update(input, timing.time, level)
 	}
 
 	override fun render() {
@@ -33,6 +40,9 @@ class GameScene(val window: Window) : Scene() {
 			.uniformColor(0, color)
 
 		GameResources.rect.get().render()
+
+		level.render(camera)
+		player.render(camera)
 	}
 
 	override fun onResize(bounds: Frame.Bounds) {

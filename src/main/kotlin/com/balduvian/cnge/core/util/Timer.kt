@@ -13,6 +13,14 @@ class Timer {
 		return this
 	}
 
+	fun stopwatch(): Timer {
+		this.goal = Double.MAX_VALUE
+		this.going = true
+		this.timer = 0.0
+
+		return this
+	}
+
 	fun restart() {
 		if (this.going) {
 			this.timer = 0.0
