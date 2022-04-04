@@ -7,5 +7,5 @@ out vec2 pos;
 void main() {
     gl_Position = pvm * vec4(vertex, 0, 1);
 
-    pos = vertex;
+    pos = vertex + vec2(0.5, 0.5);
 }

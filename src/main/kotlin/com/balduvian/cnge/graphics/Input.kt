@@ -13,8 +13,8 @@ class Input(var frame: Frame) {
 	var didResize = true
 	val keys = ByteArray(GLFW_KEY_LAST)
 	val buttons = ByteArray(GLFW_MOUSE_BUTTON_LAST)
-	var mouseX = 0.0f
-	var mouseY = 0.0f
+	var mouseX = 0.0
+	var mouseY = 0.0
 	var mouseScroll = 0
 	var bounds = Frame.Bounds(0, 0, 0, 0)
 

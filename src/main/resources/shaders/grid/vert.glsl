@@ -1,16 +1,14 @@
-layout (location = 0) in vec3 vertex;
+layout (location = 0) in vec2 vertex;
+layout (location = 1) in float along;
 
-uniform mat4 model;
 uniform mat4 pvm;
 
-uniform float width;
+uniform vec4 borderColor;
+uniform vec4 insideColor;
 
-out vec2 worldPos;
-out vec2 localPos;
+out vec4 placeColor;
 
 void main() {
-    gl_Position = pvm * vec4(vertex, 1);
-
-    localPos = vertex.xz * (1 + width);
-    worldPos = (model * vec4(vertex, 1)).xz;
+    gl_Position = pvm * vec4(vertex, 0, 1);
+    placeColor = mix(borderColor, insideColor, along);
 }

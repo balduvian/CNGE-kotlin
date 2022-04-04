@@ -1,6 +1,7 @@
 package com.balduvian.cnge.sound
 
 import org.lwjgl.openal.AL
+import org.lwjgl.openal.AL10
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
 import org.lwjgl.openal.ALCCapabilities
@@ -8,7 +9,7 @@ import org.lwjgl.openal.ALCCapabilities
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-class ALManagement() {
+class ALManagement {
 	val device: Long
 	val context: Long
 	val deviceCaps: ALCCapabilities

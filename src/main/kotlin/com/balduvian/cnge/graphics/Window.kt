@@ -104,9 +104,11 @@ class Window(
 		}
 
 		glfwSetCursorPosCallback(window) { _, x, y ->
-			input.mouseX = x.toFloat()
-			input.mouseY = y.toFloat()
+			input.mouseX = x
+			input.mouseY = y
 		}
+
+		onSizeChanged(window, width, height)
 	}
 
 	/* internal CNGE interface, do not call these */

@@ -58,8 +58,9 @@ class SceneHolder<T : Scene>(
 	}
 
 	fun unload(resourceLoader: ResourceLoader) {
+		scene = null
 		loading = false
-		resourceLoader.unstake(resources)
+		//resourceLoader.unstake(resources)
 	}
 
 	fun syncLoad(resourceLoader: ResourceLoader) {

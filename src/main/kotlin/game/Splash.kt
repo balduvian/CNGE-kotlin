@@ -16,7 +16,7 @@ import kotlin.math.PI
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
-class Splash(val window: Window) : Scene() {
+class Splash : Scene() {
 	val timer = Timer().start(8.0)
 
 	val width = 160.0f
@@ -26,7 +26,8 @@ class Splash(val window: Window) : Scene() {
 	val logoColor = Color.hex(0x000000)
 	val backgroundColor = Color.hex(0xffffff)
 
-	val font = GameFont(Color.hex(0x000000))
+	val font = GameFont()
+	init { font.colors = arrayListOf(Color.hex(0x000000)) }
 
 	/*
 	 * base form:
@@ -106,7 +107,7 @@ class Splash(val window: Window) : Scene() {
 
 		font.alpha = 1.0f - fadeAlong
 		val stringSection = baseString.substring(0 until (baseString.length * rotateAlong).roundToInt())
-		font.renderString(camera, stringSection, 80.0f, 10.0f, 4.0f / 8.0f, 5.0f, true)
+		font.renderString(camera, 80.0f, 10.0f, 4.0f / 8.0f, 5.0f, true, stringSection)
 	}
 
 	override fun onResize(bounds: Frame.Bounds) {

@@ -6,7 +6,7 @@ import com.balduvian.cnge.graphics.TileTexture
 abstract class Font {
 	abstract fun preRender()
 
-	abstract fun renderChar(camera: Camera, char: Char, x: Float, y: Float, width: Float, height: Float)
+	abstract fun renderChar(camera: Camera, i: Int, char: Char, x: Float, y: Float, width: Float, height: Float)
 
 	/**
 	 * @param charWidth a percentage of width of a character vs the width of the bounding box
@@ -14,20 +14,26 @@ abstract class Font {
 	 */
 	fun renderString(
 		camera: Camera,
-		string: String,
 		x: Float,
 		y: Float,
 		charWidth: Float,
 		scale: Float,
 		centered: Boolean,
+		vararg strings: String,
 	) {
 		val boxSize = scale / charWidth
-		val offX = if (centered) -(string.length * scale / 2.0f) else 0f
+		val offX = if (centered) -(strings.fold(0) { last, string -> last + string.length } * scale / 2.0f) else 0f
 
 		preRender()
 
-		string.forEachIndexed { i, c ->
-			renderChar(camera, c, x + (i * scale) + offX, y, boxSize, boxSize)
+		var goingX = x + offX
+
+		for (i in strings.indices) {
+			val string = strings[i]
+			for (c in string) {
+				renderChar(camera, i, c, goingX, y, boxSize, boxSize)
+				goingX += scale
+			}
 		}
 	}
 }

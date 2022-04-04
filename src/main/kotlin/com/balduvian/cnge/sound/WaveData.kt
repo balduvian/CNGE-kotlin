@@ -1,4 +1,4 @@
-package com.balduvian.cnge.sound;
+package com.balduvian.cnge.sound
 
 import org.lwjgl.openal.AL10
 import org.lwjgl.system.MemoryUtil
@@ -16,7 +16,11 @@ class WaveData(stream: AudioInputStream) {
 
 	init {
 		val audioFormat = stream.format
-		format = openAlFormat(audioFormat.channels, audioFormat.sampleSizeInBits)
+		format = openAlFormat(
+			audioFormat.channels,
+			audioFormat.sampleSizeInBits
+		)
+
 		samplerate = audioFormat.sampleRate.toInt()
 		bytesPerFrame = audioFormat.frameSize
 		totalBytes = (stream.frameLength * bytesPerFrame).toInt()
@@ -25,7 +29,11 @@ class WaveData(stream: AudioInputStream) {
 		stream.read(byteArray, 0, totalBytes)
 		stream.close()
 
-		data = ByteBuffer.wrap(byteArray)
+		data = ByteBuffer.allocateDirect(byteArray.size)
+		for (i in byteArray.indices) {
+			data.put(byteArray[i])
+		}
+		data.flip()
 	}
 
 	companion object {
