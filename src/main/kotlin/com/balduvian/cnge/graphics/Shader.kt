@@ -1,17 +1,29 @@
 package com.balduvian.cnge.graphics
 
+import org.joml.Matrix2f
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL46.*
 
-class Shader(
+data class ShaderData(
 	val program: Int,
 	val projViewLocation: Int,
 	val modelLocation: Int,
 	val normalLocation: Int,
 	val pvmLocation: Int,
-	val locations: Array<Int>
-) : GraphicsObject() {
+	val locations: Array<Int>,
+)
+
+open class Shader(
+	shaderData: ShaderData,
+) : Disposable {
+	val program = shaderData.program
+	val projViewLocation = shaderData.projViewLocation
+	val modelLocation = shaderData.modelLocation
+	val normalLocation = shaderData.normalLocation
+	val pvmLocation = shaderData.pvmLocation
+	val locations = shaderData.locations
+
 	companion object {
 		const val VERSION = "460 core"
 
@@ -27,11 +39,11 @@ class Shader(
 
 		val includeCache = HashMap<String, String>()
 
-		fun create(
+		inline fun create(
 			vertexSource: String,
 			fragmentSource: String,
 			vararg uniforms: String,
-		): Shader {
+		): ShaderData {
 			val program = glCreateProgram()
 
 			val fragmentShader = createShader(fragmentSource, GL_FRAGMENT_SHADER)
@@ -65,7 +77,7 @@ class Shader(
 				if (locations[i] == -1) throw Exception("Uniform ${uniforms[i]} was not found")
 			}
 
-			return Shader(program, projViewLocation, modelLocation, normalMatrixLocation, pvmLocation, locations)
+			return ShaderData(program, projViewLocation, modelLocation, normalMatrixLocation, pvmLocation, locations)
 		}
 
 		fun processSource(source: String): String {
@@ -106,7 +118,7 @@ class Shader(
 			}
 		}
 
-		private fun createShader(source: String, type: Int): Int {
+		fun createShader(source: String, type: Int): Int {
 			val shader = glCreateShader(type)
 
 			glShaderSource(shader, source)
@@ -124,7 +136,7 @@ class Shader(
 		glUniformMatrix4fv(pvmLocation, false, projectionView.mul(model, pvm).get(matrixValues))
 	}
 
-	fun enable(projectionView: Matrix4f, model: Matrix4f): Shader {
+	open fun enable(projectionView: Matrix4f, model: Matrix4f): Shader {
 		glUseProgram(program)
 		mulMvp(projectionView, model)
 		return this
@@ -207,8 +219,24 @@ class Shader(
 		glUniform4f(locations[index], values[0], values[1], values[2], values[3])
 		return this
 	}
+	fun uniformFloatArray(index: Int, values: FloatArray): Shader {
+		glUniform1fv(locations[index], values)
+		return this
+	}
 	fun uniformVector2Array(index: Int, values: FloatArray): Shader {
 		glUniform2fv(locations[index], values)
+		return this
+	}
+	fun uniformVector3Array(index: Int, values: FloatArray): Shader {
+		glUniform3fv(locations[index], values)
+		return this
+	}
+	fun uniformVector4Array(index: Int, values: FloatArray): Shader {
+		glUniform4fv(locations[index], values)
+		return this
+	}
+	fun unfiformMatrix2(index: Int, values: Matrix2f): Shader {
+		glUniformMatrix2fv(projViewLocation, false, values.get(matrixValues))
 		return this
 	}
 	fun unfiformMatrix3(index: Int, values: Matrix3f): Shader {

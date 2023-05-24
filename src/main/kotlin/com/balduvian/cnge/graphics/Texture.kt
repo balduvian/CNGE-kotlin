@@ -3,7 +3,7 @@ package com.balduvian.cnge.graphics
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
 
-open class Texture(val texture: Int) : GraphicsObject() {
+open class Texture(val texture: Int) : Disposable {
 	companion object {
 		fun create(width: Int, height: Int, pixels: ByteBuffer, params: TextureParams): Texture {
 			if (pixels.limit() != width * height * 4) throw Exception(

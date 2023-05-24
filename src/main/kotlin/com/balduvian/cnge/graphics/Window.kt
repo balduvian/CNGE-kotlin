@@ -7,9 +7,7 @@ import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.system.MemoryUtil
-import java.awt.image.BufferedImage
 import java.net.URL
-import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 class Window(

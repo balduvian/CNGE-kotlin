@@ -39,10 +39,10 @@ abstract class AbstractGoal(
 	}
 
 	fun renderGradient(camera: Camera, x: Float, y: Float, width: Float, height: Float) {
-		GameResources.gradientShader.get().enable(camera.projectionView, Camera.transform(x + width / 2.0f, y + height / 2.0f, width, height, rotation))
+		GameResources.gradientShader().enable(camera.projectionView, Camera.transform(x + width / 2.0f, y + height / 2.0f, width, height, rotation))
 			.uniformColor(0, Colors.background)
 			.uniformColor(1, Colors.background, 0.0f)
-		GameResources.centerRect.get().render()
+		GameResources.centerRect().render()
 	}
 
 	companion object {

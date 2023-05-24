@@ -188,6 +188,7 @@ class GameScene(val tutorialMode: Boolean) : Scene() {
 						phase = Phase.BUILDING
 						this.snake = null
 					}
+					else -> {}
 				}
 			}
 

@@ -1,7 +1,9 @@
+
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.8.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("application")
+    id("com.balduvian.assetgen")
 }
 
 group = project.property("cngeGroup")!!
@@ -27,9 +29,27 @@ dependencies {
     implementation("org.lwjgl:lwjgl-openal:${lwjglVersion}:natives-windows")
 
     implementation("org.joml:joml:${jomlVersion}")
+
+    implementation("com.squareup:kotlinpoet:1.13.2")
+}
+
+sourceSets.create("gen") {
+    java.srcDirs("src/gen/kotlin")
+}
+
+sourceSets.main {
+    java.srcDirs("src/main/kotlin", sourceSets["gen"].java)
+}
+
+assetgen {
+   unused = "2344324"
 }
 
 tasks {
+    genassets {
+        mainSourceSet = sourceSets["main"]
+        genSourceSet = sourceSets["gen"]
+    }
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.apiVersion = "1.6"

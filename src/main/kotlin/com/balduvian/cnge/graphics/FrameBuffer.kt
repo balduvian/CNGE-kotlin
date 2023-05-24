@@ -7,7 +7,7 @@ class FrameBuffer(
 	val texture: Texture,
 	var width: Int,
 	var height: Int
-) : GraphicsObject() {
+) : Disposable {
 	companion object {
 		fun create(width: Int, height: Int, textureParams: TextureParams): FrameBuffer {
 			val frameBuffer = glGenFramebuffers()

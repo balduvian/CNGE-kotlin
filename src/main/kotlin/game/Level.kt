@@ -1,10 +1,7 @@
 package game
 
-import com.balduvian.cnge.core.util.Color
-import com.balduvian.cnge.core.util.Color.Companion.uniformColor
-import com.balduvian.cnge.core.util.Vector
 import com.balduvian.cnge.graphics.Camera
-import com.balduvian.cnge.graphics.GraphicsObject
+import com.balduvian.cnge.graphics.Disposable
 import com.balduvian.cnge.graphics.Input
 import game.tile.*
 import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1
@@ -20,7 +17,7 @@ class Level(
 	val tiles: Array<Tile>,
 	val baseInventory: ArrayList<Tile>,
 	var goalMoves: Int,
-): GraphicsObject() {
+): Disposable {
 	val outOfBounds = Hole()
 
 	val entrance = Entrance(entrancePos, width)

@@ -1,11 +1,11 @@
 package com.balduvian.cnge.sound
 
-import com.balduvian.cnge.graphics.GraphicsObject
+import com.balduvian.cnge.graphics.Disposable
 import org.lwjgl.openal.AL10
 import org.lwjgl.openal.AL10.AL_PLAYING
 import org.lwjgl.openal.AL10.AL_SOURCE_STATE
 
-class Sound(waveData: WaveData): GraphicsObject() {
+class Sound(waveData: WaveData): Disposable {
 	private val buffer = AL10.alGenBuffers()
 	private val sourceId = AL10.alGenSources()
 

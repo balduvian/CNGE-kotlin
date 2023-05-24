@@ -1,8 +1,8 @@
 package com.balduvian.cnge.core
 
-import com.balduvian.cnge.graphics.GraphicsObject
+import com.balduvian.cnge.graphics.Disposable
 
-abstract class Resource <T: GraphicsObject> {
+abstract class Resource <T: Disposable> {
 	enum class State {
 		UNLOADED,
 		STAGED,
@@ -59,6 +59,10 @@ abstract class Resource <T: GraphicsObject> {
 	var thrownError: Exception? = null
 
 	fun get(): T {
+		return resource!!
+	}
+
+	operator fun invoke(): T {
 		return resource!!
 	}
 

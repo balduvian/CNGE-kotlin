@@ -9,7 +9,7 @@ class VAO(
 	val indexCount: Int,
 	val buffers: Array<Int>,
 	val indexBuffer: Int
-): GraphicsObject() {
+): Disposable {
 	sealed class Attribute(val perVertex: Int)
 	class StaticAttribute(perVertex: Int, val data: FloatArray) : Attribute(perVertex)
 	class DynamicAttribute(perVertex: Int, val elements: Int) : Attribute(perVertex)

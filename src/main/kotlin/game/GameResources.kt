@@ -1,12 +1,14 @@
 package game
 
-import com.balduvian.cnge.core.resource.ShaderResource
-import com.balduvian.cnge.core.resource.SoundResource
-import com.balduvian.cnge.core.resource.TileTextureResource
-import com.balduvian.cnge.core.resource.VAOResource
+import com.balduvian.cnge.core.resource.*
+import com.balduvian.cnge.core.util.Color
+import com.balduvian.cnge.core.util.Color.Companion.uniformColor
+import com.balduvian.cnge.graphics.Shader
+import com.balduvian.cnge.graphics.ShaderData
 import com.balduvian.cnge.graphics.TextureParams
 import com.balduvian.cnge.graphics.VAO
 import org.joml.Math.sin
+import org.joml.Matrix4f
 import org.lwjgl.opengl.GL46.*
 import kotlin.math.cos
 
@@ -269,6 +271,60 @@ object GameResources {
 		"/shaders/checker/frag.glsl",
 		"color0", "color1"
 	)
+
+	class CheckerShader(shaderData: ShaderData) : Shader(shaderData) {
+		override fun enable(projectionView: Matrix4f, model: Matrix4f): CheckerShader {
+			super.enable(projectionView, model)
+			return this
+		}
+
+		fun color0(x: Float, y: Float, z: Float, w: Float): CheckerShader {
+			uniformVector4(0, x, y, z, w)
+			return this
+		}
+
+		fun color0(values: Array<Float>): CheckerShader {
+			uniformVector4(0, values)
+			return this
+		}
+
+		fun color0(color: Color): CheckerShader {
+			uniformColor(0, color)
+			return this
+		}
+
+		fun color0(color: Color, alpha: Float): CheckerShader {
+			uniformColor(0, color, alpha)
+			return this
+		}
+
+		fun color1(x: Float, y: Float, z: Float, w: Float): CheckerShader {
+			uniformVector4(1, x, y, z, w)
+			return this
+		}
+
+		fun color1(values: Array<Float>): CheckerShader {
+			uniformVector4(1, values)
+			return this
+		}
+
+		fun color1(color: Color): CheckerShader {
+			uniformColor(1, color)
+			return this
+		}
+
+		fun color1(color: Color, alpha: Float): CheckerShader {
+			uniformColor(1, color, alpha)
+			return this
+		}
+	}
+
+	val checkerShader2 = createShaderResource(
+		"/shaders/checker/vert.glsl",
+		"/shaders/checker/frag.glsl",
+		"color0",
+		"color1",
+	) { shaderData -> CheckerShader(shaderData) }
 
 	val fontTiles = TileTextureResource(
 		"/textures/font.png",
