@@ -6,3 +6,5 @@ pluginManagement {
 }
 
 rootProject.name = "cnge-kotlin"
+
+include("game", "cnge")

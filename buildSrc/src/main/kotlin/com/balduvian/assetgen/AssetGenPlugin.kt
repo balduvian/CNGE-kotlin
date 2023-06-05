@@ -1,18 +1,17 @@
+package com.balduvian.assetgen
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.util.concurrent.Callable
-import org.gradle.api.tasks.Input
-import kotlin.io.path.Path
-import java.io.FileWriter
+import java.net.URL
+import java.net.URLClassLoader
 
 lateinit var mainSourceSet: SourceSet
 lateinit var genSourceSet: SourceSet
@@ -29,24 +28,48 @@ abstract class GenerateTask : DefaultTask() {
 	abstract var mainSourceSet: SourceSet
 	@get:Input
 	abstract var genSourceSet: SourceSet
+	@get:Input
+	abstract var resourceGeneratorNames: Array<String>
 
 	@TaskAction
 	fun generate() {
-		val kotlinDir = genSourceSet.java.srcDirs.find { file -> file.name == "kotlin" }
-		if (kotlinDir == null || !kotlinDir.isDirectory) {
-			project.logger.error("")
-			return;
+		project.logger.error(genSourceSet.java.srcDirs.toList().joinToString { it.path })
+
+		val outputDir = genSourceSet.java.srcDirs.find { file -> file.name == "kotlin" }
+		if (outputDir == null) {
+			project.logger.error("could not find kotlin directory")
+			return
 		}
+		if (!outputDir.exists()) outputDir.mkdirs()
 
-		val newFile = kotlinDir.toPath().resolve("d.kt").toFile()
-		val writer = FileWriter(newFile)
+		val resourcesPath = mainSourceSet.resources.srcDirs.first().toPath()
 
-		writer.write("""
-			fun skek(a: Int): Int {
-				return a + 1
+		val classLoader = URLClassLoader(classpathToURLs(mainSourceSet.compileClasspath))
+
+		resourceGeneratorNames.forEach { resourceGeneratorName ->
+			val generatorClass = classLoader.loadClass(resourceGeneratorName).kotlin
+
+			val puppetedGenerator = PuppetedGenerator.create(generatorClass)
+
+			val folder = resourcesPath.resolve(puppetedGenerator.getFolder()).toFile()
+
+			if (!folder.exists() || !folder.isDirectory) {
+				project.logger.error("could not find resources folder \"${folder.path}\"")
+				return@forEach
 			}
-		""".trimIndent())
-		writer.close()
+
+			folder.listFiles()!!.forEach { file ->
+				puppetedGenerator.generate(file, outputDir)
+			}
+		}
+	}
+
+	fun classpathToURLs(classpath: FileCollection): Array<out URL> {
+		fun Iterable<File>.toUrls(): Sequence<URL> = asSequence().map { it.toURI().toURL() }
+
+		return mutableListOf<URL>().apply {
+			classpath.let { it.toUrls().forEach { add(it) } }
+		}.toTypedArray().apply { project.logger.debug("Classpath for generator: ${this.joinToString("\n") { it.toString() }}") }
 	}
 }
 
@@ -62,4 +85,6 @@ class AssetGenPlugin : Plugin<Project> {
 
 		//project.dependencies.add(genSourceSet.implementationConfigurationName, project.files(Callable { File("f") }))
 	}
+
+
 }

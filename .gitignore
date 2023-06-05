@@ -1,4 +1,6 @@
 /build
 /buildSrc/build
+/cnge/build
+/game/build
 .idea
 .gradle
